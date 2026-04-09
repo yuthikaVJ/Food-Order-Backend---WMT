@@ -2,11 +2,11 @@
   "name": "food-order-management-system-backend",
   "version": "1.0.0",
   "description": "Backend API for Food Order Management System",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
-    "seed:admin": "node src/seeder/createAdmin.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "seed:admin": "node seeder/createAdmin.js"
   },
   "keywords": [
     "nodejs",
