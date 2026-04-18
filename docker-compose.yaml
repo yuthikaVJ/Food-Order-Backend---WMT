@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  backend:
+    image: food-backend:v1
+    container_name: node-app
+    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
