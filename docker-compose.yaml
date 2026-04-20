@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   backend:
-    image: food-backend:v1
+    image: yuthikavj31545/food-order-backend:latest
     container_name: node-app
     restart: always
     ports:
