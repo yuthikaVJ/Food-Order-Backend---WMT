@@ -8,6 +8,27 @@ const escapeRegex = (value) => {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 };
 
+const convertImageToBase64 = (file) => {
+  if (!file) return "";
+
+  return `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+};
+
+const generateCategoryNumber = async () => {
+  const lastCategory = await Category.findOne()
+    .sort({ createdAt: -1 })
+    .select("categoryNumber");
+
+  if (!lastCategory || !lastCategory.categoryNumber) {
+    return "CAT-0001";
+  }
+
+  const lastNumber = parseInt(lastCategory.categoryNumber.split("-")[1], 10);
+  const nextNumber = lastNumber + 1;
+
+  return `CAT-${String(nextNumber).padStart(4, "0")}`;
+};
+
 const createCategory = asyncHandler(async (req, res) => {
   const { name, description, isActive } = req.body;
 
@@ -16,7 +37,13 @@ const createCategory = asyncHandler(async (req, res) => {
     throw new Error("Category name is required");
   }
 
+  if (name.trim().length < 2) {
+    res.status(400);
+    throw new Error("Category name must have at least 2 characters");
+  }
+
   const trimmedName = name.trim();
+
   const existingCategory = await Category.findOne({
     name: {
       $regex: `^${escapeRegex(trimmedName)}$`,
@@ -29,9 +56,14 @@ const createCategory = asyncHandler(async (req, res) => {
     throw new Error("Category already exists");
   }
 
+  const categoryNumber = await generateCategoryNumber();
+  const categoryImage = convertImageToBase64(req.file);
+
   const category = await Category.create({
+    categoryNumber,
     name: trimmedName,
-    description,
+    description: description || "",
+    categoryImage,
     isActive:
       typeof isActive === "undefined" ? true : String(isActive) === "true",
   });
@@ -97,7 +129,13 @@ const updateCategory = asyncHandler(async (req, res) => {
   }
 
   if (name && name.trim()) {
+    if (name.trim().length < 2) {
+      res.status(400);
+      throw new Error("Category name must have at least 2 characters");
+    }
+
     const trimmedName = name.trim();
+
     const existingCategory = await Category.findOne({
       _id: { $ne: id },
       name: {
@@ -116,6 +154,10 @@ const updateCategory = asyncHandler(async (req, res) => {
 
   if (typeof description !== "undefined") {
     category.description = description;
+  }
+
+  if (req.file) {
+    category.categoryImage = convertImageToBase64(req.file);
   }
 
   if (typeof isActive !== "undefined") {
